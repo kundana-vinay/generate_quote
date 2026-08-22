@@ -295,6 +295,30 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   </div>
 </div>
 
+<!-- Share PDF modal -->
+<div class="modal-overlay" id="shareModal" onclick="if(event.target===this)closeSharePanel()">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <h2>PDF Ready</h2>
+      <button class="modal-close" onclick="closeSharePanel()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p id="shareHint" style="font-size:13px;color:var(--text-light);margin-bottom:16px"></p>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button id="btnNativeShare" class="btn btn-primary" onclick="shareNativePdf()" style="background:#25d366;justify-content:center;padding:12px">
+          Share to WhatsApp / Apps
+        </button>
+        <button class="btn btn-outline" onclick="sendWaTextOnly()" style="justify-content:center">
+          Send message only (no PDF)
+        </button>
+        <button class="btn btn-outline" id="btnDownloadPdf" onclick="downloadPendingPdf()" style="justify-content:center">
+          Download PDF
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
@@ -1098,12 +1122,16 @@ async function generateAndShareWhatsApp() {
       return;
     }
 
-    // Off-screen absolute holder. Do NOT use position:fixed here -
-    // html2canvas can capture fixed elements as blank when page is scrolled.
+    // IMPORTANT: the render element must sit in normal flow inside a
+    // zero-height clipping wrapper. Positioned elements (fixed/absolute/
+    // negative offsets) make html2canvas produce a 0-height blank canvas.
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:absolute;left:0;top:0;width:794px;height:0;overflow:hidden';
     const holder = document.createElement('div');
-    holder.style.cssText = 'position:absolute;left:-10000px;top:0;width:794px;background:#ffffff';
+    holder.style.cssText = 'width:794px;background:#ffffff';
     holder.appendChild(previewContent.cloneNode(true));
-    document.body.appendChild(holder);
+    wrap.appendChild(holder);
+    document.body.appendChild(wrap);
 
     // Make sure webfonts are loaded before rendering
     try { await document.fonts.ready; } catch (e) { /* ignore */ }
@@ -1152,7 +1180,7 @@ async function generateAndShareWhatsApp() {
       console.warn('PDF retry at lower resolution', genErr);
       pdfBlob = await makePdf(Math.min(1, safeScale));
     } finally {
-      holder.remove();
+      wrap.remove();
     }
 
     console.log('PDF generated:', fileName, (pdfBlob && pdfBlob.size || 0) + ' bytes', 'scale=' + safeScale);
@@ -1179,61 +1207,10 @@ async function generateAndShareWhatsApp() {
       'Thank you,\n' +
       companyName;
 
-    // Fallback: download PDF (used when native share is blocked/unavailable)
-    const downloadPdf = function() {
-      const url = URL.createObjectURL(pdfBlob);
-
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-
-      // Delay revoke: revoking immediately cancels the download on mobile
-      // browsers and produces an empty file
-      setTimeout(function() {
-        URL.revokeObjectURL(url);
-      }, 60000);
-
-      showToast(
-        'PDF downloaded. Open it and use Share → WhatsApp.',
-        'success'
-      );
-    };
-
-    // iPhone / Android native share
-    if (
-      navigator.share &&
-      navigator.canShare &&
-      navigator.canShare({ files: [pdfFile] })
-    ) {
-
-      try {
-        await navigator.share({
-          title: 'Interior Design Quotation',
-          text: message,
-          files: [pdfFile]
-        });
-
-        showToast('Quotation ready to share', 'success');
-
-      } catch (shareErr) {
-
-        // User closed the share sheet - do nothing
-        if (shareErr && shareErr.name === 'AbortError') {
-          return;
-        }
-
-        // NotAllowedError: user activation expired while the PDF was being
-        // generated, or the platform blocked sharing. Download instead.
-        console.warn('Native share failed, falling back to download', shareErr);
-        downloadPdf();
-      }
-
-    } else {
-      downloadPdf();
-    }
+    // Keep the PDF ready; sharing must happen on a fresh tap so the
+    // browser allows navigator.share() (transient activation requirement)
+    window._pendingPdf = { blob: pdfBlob, file: pdfFile, message: message };
+    openSharePanel();
 
   } catch (error) {
 
@@ -1248,6 +1225,76 @@ async function generateAndShareWhatsApp() {
       'error'
     );
   }
+}
+
+// ===== SHARE PANEL =====
+
+function openSharePanel() {
+  const p = window._pendingPdf;
+  if (!p) return;
+
+  const canShareFiles =
+    !!navigator.share &&
+    !!navigator.canShare &&
+    navigator.canShare({ files: [p.file] });
+
+  document.getElementById('btnNativeShare').style.display = canShareFiles ? '' : 'none';
+
+  document.getElementById('shareHint').textContent = canShareFiles
+    ? 'Tap "Share to WhatsApp" and choose WhatsApp in the share sheet. The PDF is sent directly - nothing is saved to your phone.'
+    : 'Direct file sharing is not available in this browser. Use "Download PDF", then attach it in WhatsApp.';
+
+  document.getElementById('shareModal').classList.add('show');
+}
+
+function closeSharePanel() {
+  document.getElementById('shareModal').classList.remove('show');
+}
+
+async function shareNativePdf() {
+  const p = window._pendingPdf;
+  if (!p) return;
+  try {
+    await navigator.share({
+      title: 'Interior Design Quotation',
+      text: p.message,
+      files: [p.file]
+    });
+    closeSharePanel();
+    showToast('Quotation shared', 'success');
+  } catch (err) {
+    // User closed the share sheet without sending - just leave panel open
+    if (err && err.name === 'AbortError') return;
+    console.warn('Native share failed', err);
+    showToast('Sharing was blocked. Use Download instead.', 'error');
+  }
+}
+
+function sendWaTextOnly() {
+  const p = window._pendingPdf;
+  if (!p) return;
+  closeSharePanel();
+  window.open('https://wa.me/?text=' + encodeURIComponent(p.message), '_blank');
+}
+
+function downloadPendingPdf() {
+  const p = window._pendingPdf;
+  if (!p) return;
+
+  const url = URL.createObjectURL(p.blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = p.file.name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  // Delay revoke: revoking immediately cancels the download on mobile
+  // browsers and produces an empty file
+  setTimeout(function() {
+    URL.revokeObjectURL(url);
+  }, 60000);
 }
 
 // ===== KEYBOARD SHORTCUTS =====
