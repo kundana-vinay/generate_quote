@@ -1099,7 +1099,7 @@ async function generateAndShareWhatsApp() {
     }
 
     const holder = document.createElement('div');
-    holder.style.cssText = 'position:absolute;left:-10000px;top:0;width:794px;background:#ffffff';
+    holder.style.cssText = 'position:fixed;top:0;left:0;width:794px;background:#ffffff;z-index:500';
     holder.appendChild(previewContent.cloneNode(true));
     document.body.appendChild(holder);
 
@@ -1122,8 +1122,7 @@ async function generateAndShareWhatsApp() {
             scale: s,
             useCORS: true,
             backgroundColor: '#ffffff',
-            windowWidth: 900,
-            scrollY: 0,
+            windowWidth: 1000,
             logging: false
           },
           jsPDF: {
