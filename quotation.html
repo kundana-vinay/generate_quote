@@ -1166,24 +1166,8 @@ async function generateAndShareWhatsApp() {
       'Thank you,\n' +
       companyName;
 
-    // iPhone / Android native share
-    if (
-      navigator.share &&
-      navigator.canShare &&
-      navigator.canShare({ files: [pdfFile] })
-    ) {
-
-      await navigator.share({
-        title: 'Interior Design Quotation',
-        text: message,
-        files: [pdfFile]
-      });
-
-      showToast('Quotation ready to share', 'success');
-
-    } else {
-
-      // Fallback: download PDF
+    // Fallback: download PDF (used when native share is blocked/unavailable)
+    const downloadPdf = function() {
       const url = URL.createObjectURL(pdfBlob);
 
       const a = document.createElement('a');
@@ -1199,6 +1183,39 @@ async function generateAndShareWhatsApp() {
         'PDF downloaded. Open it and use Share → WhatsApp.',
         'success'
       );
+    };
+
+    // iPhone / Android native share
+    if (
+      navigator.share &&
+      navigator.canShare &&
+      navigator.canShare({ files: [pdfFile] })
+    ) {
+
+      try {
+        await navigator.share({
+          title: 'Interior Design Quotation',
+          text: message,
+          files: [pdfFile]
+        });
+
+        showToast('Quotation ready to share', 'success');
+
+      } catch (shareErr) {
+
+        // User closed the share sheet - do nothing
+        if (shareErr && shareErr.name === 'AbortError') {
+          return;
+        }
+
+        // NotAllowedError: user activation expired while the PDF was being
+        // generated, or the platform blocked sharing. Download instead.
+        console.warn('Native share failed, falling back to download', shareErr);
+        downloadPdf();
+      }
+
+    } else {
+      downloadPdf();
     }
 
   } catch (error) {
