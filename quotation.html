@@ -1,0 +1,1222 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Touch and Tone - Interior Design Quotation Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+:root{--primary:#1a365d;--primary-light:#2c5282;--accent:#c9a962;--accent-light:#d4b87a;--bg:#f5f6f8;--white:#ffffff;--border:#e2e8f0;--text:#2d3748;--text-light:#718096;--danger:#e53e3e;--success:#38a169;--shadow:0 2px 8px rgba(0,0,0,0.08);--shadow-lg:0 8px 24px rgba(0,0,0,0.12)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
+.container{max-width:1440px;margin:0 auto;padding:20px}
+.header{background:var(--white);border-radius:12px;padding:20px 24px;margin-bottom:20px;box-shadow:var(--shadow);display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.logo-box{width:56px;height:56px;border-radius:10px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;overflow:hidden;flex-shrink:0}
+.logo-box img{width:100%;height:100%;object-fit:cover}
+.header-info{flex:1;min-width:180px}
+.header-info h1{font-size:20px;font-weight:700;color:var(--primary)}
+.header-info p{font-size:12px;color:var(--text-light)}
+.header-meta{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.header-meta input{font-size:12px}
+.card{background:var(--white);border-radius:12px;padding:24px;margin-bottom:20px;box-shadow:var(--shadow)}
+.card-title{font-size:15px;font-weight:600;color:var(--primary);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.form-row{display:flex;gap:14px;margin-bottom:12px;flex-wrap:wrap}
+.form-group{flex:1;min-width:160px}
+.form-group label{display:block;font-size:11px;font-weight:600;color:var(--text-light);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;transition:all .2s;background:#fff}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(26,54,93,.1)}
+.form-group textarea{resize:vertical;min-height:70px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;transition:all .2s}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-light)}
+.btn-accent{background:var(--accent);color:#fff}.btn-accent:hover{background:var(--accent-light)}
+.btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{background:#c53030}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:6px}
+.btn-xs{padding:4px 8px;font-size:11px;border-radius:4px}
+.btn-group{display:flex;gap:8px;flex-wrap:wrap}
+.section-card{background:var(--white);border-radius:12px;margin-bottom:16px;box-shadow:var(--shadow);overflow:hidden;border:1px solid var(--border)}
+.section-header{background:linear-gradient(135deg,var(--primary),var(--primary-light));padding:14px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.section-header input{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:8px 12px;border-radius:8px;font-size:15px;font-weight:600;flex:1;min-width:180px}
+.section-header input::placeholder{color:rgba(255,255,255,.5)}
+.section-header input:focus{outline:none;background:rgba(255,255,255,.25)}
+.section-actions{display:flex;gap:5px}
+.section-actions button{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:5px 9px;border-radius:6px;cursor:pointer;font-size:11px;transition:all .2s}
+.section-actions button:hover{background:rgba(255,255,255,.3)}
+.section-actions button.danger:hover{background:var(--danger)}
+.section-body{padding:0}
+.section-total{padding:10px 18px;background:#f8fafc;border-top:1px solid var(--border);text-align:right;font-weight:600;font-size:14px;color:var(--primary)}
+.table-wrap{overflow-x:auto}
+.items-table{width:100%;border-collapse:collapse;min-width:1050px}
+.items-table thead th{background:#f1f5f9;padding:8px 6px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;color:var(--text-light);border-bottom:2px solid var(--border);white-space:nowrap}
+.items-table tbody td{padding:4px 6px;border-bottom:1px solid var(--border);vertical-align:middle}
+.items-table tbody tr:hover{background:#fafbfc}
+.items-table input,.items-table select{width:100%;padding:5px 7px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit;background:#fff}
+.items-table input:focus,.items-table select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 2px rgba(26,54,93,.1)}
+.col-sno{width:36px;text-align:center;font-weight:600;color:var(--text-light);font-size:12px}
+.col-particular{min-width:180px}
+.col-desc{min-width:160px}
+.col-dim{width:62px}
+.col-sft{width:62px;text-align:center;font-weight:500;font-size:12px;color:var(--text-light)}
+.col-qty{width:54px}
+.col-unit{width:74px}
+.col-price{width:82px}
+.col-amount{width:100px;text-align:right;font-weight:600;color:var(--primary);font-size:12px}
+.col-action{width:44px;text-align:center}
+.autocomplete-wrap{position:relative}
+.autocomplete-list{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow-lg);z-index:1000;max-height:220px;overflow-y:auto;display:none;margin-top:3px}
+.autocomplete-list.show{display:block}
+.autocomplete-item{padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:12px;transition:background .15s}
+.autocomplete-item:last-child{border-bottom:none}
+.autocomplete-item:hover,.autocomplete-item.active{background:#f1f5f9}
+.autocomplete-item .item-name{font-weight:500;color:var(--text)}
+.autocomplete-item .item-price{font-size:10px;color:var(--text-light);margin-top:1px}
+.autocomplete-item.custom{color:var(--accent);font-style:italic}
+.totals-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-bottom:16px}
+.total-card{background:var(--white);border-radius:12px;padding:18px;box-shadow:var(--shadow)}
+.total-card h3{font-size:13px;font-weight:600;color:var(--text-light);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px}
+.total-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+.total-row:last-child{border-bottom:none}
+.total-row .label{color:var(--text-light)}
+.total-row .value{font-weight:600;color:var(--text)}
+.total-row.grand{font-size:18px;padding-top:10px;border-top:2px solid var(--primary);margin-top:6px}
+.total-row.grand .value{color:var(--primary);font-size:20px}
+.summary-bar{background:var(--white);border-radius:12px;padding:16px 20px;box-shadow:var(--shadow);margin-bottom:20px;position:sticky;top:8px;z-index:100;display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:space-between;border:1px solid var(--border)}
+.grand-display{font-size:22px;font-weight:700;color:var(--primary)}
+.grand-display span{font-size:13px;color:var(--text-light);font-weight:400}
+.summary-actions{display:flex;gap:8px;flex-wrap:wrap}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:14px;max-width:880px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg)}
+.modal-header{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal-header h2{font-size:17px;font-weight:600;color:var(--primary)}
+.modal-body{padding:22px}
+.modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-light);padding:4px}
+.modal-close:hover{color:var(--danger)}
+.preview-header{text-align:center;margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid var(--primary)}
+.preview-header h2{font-size:22px;color:var(--primary);margin-bottom:3px}
+.preview-header p{font-size:12px;color:var(--text-light)}
+.preview-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:20px;font-size:12px}
+.preview-meta div{display:flex;gap:6px}
+.preview-meta strong{color:var(--primary);min-width:90px;font-weight:600}
+.preview-section{margin-bottom:16px}
+.preview-section h3{background:var(--primary);color:#fff;padding:7px 14px;font-size:13px;font-weight:600}
+.preview-table{width:100%;border-collapse:collapse;font-size:12px}
+.preview-table th,.preview-table td{padding:6px 8px;border:1px solid var(--border);text-align:left}
+.preview-table th{background:#f1f5f9;font-weight:600;font-size:11px;text-transform:uppercase}
+.preview-table .amt{text-align:right;font-weight:600}
+.preview-total-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px}
+.preview-total-row.grand{font-size:18px;font-weight:700;color:var(--primary);border-top:2px solid var(--primary);padding-top:8px}
+.preview-notes{margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+.preview-notes h4,.preview-terms h4{font-size:13px;font-weight:600;color:var(--primary);margin-bottom:6px}
+.preview-notes ol,.preview-terms ol{padding-left:18px;font-size:11px;line-height:1.6}
+.preview-notes li,.preview-terms li{margin-bottom:3px}
+.toast{position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:8px;color:#fff;font-size:13px;font-weight:500;z-index:3000;transform:translateX(120%);transition:transform .3s;box-shadow:var(--shadow-lg)}
+.toast.show{transform:translateX(0)}
+.toast.success{background:var(--success)}
+.toast.error{background:var(--danger)}
+.empty-state{text-align:center;padding:30px;color:var(--text-light);font-size:13px}
+.add-item-row{padding:10px 14px;background:#fafbfc;border-top:1px solid var(--border)}
+@media(max-width:768px){.container{padding:10px}.header{padding:14px}.form-row{flex-direction:column;gap:8px}.form-group{min-width:100%}.header-meta{flex-direction:column;align-items:stretch}.summary-bar{flex-direction:column;align-items:stretch}.grand-display{text-align:center}.items-table{min-width:900px}}
+@media print{body{background:#fff;margin:0;padding:0}.container{max-width:100%;padding:0;margin:0}.header,.card,.summary-bar,.btn,.section-actions,.modal-overlay,.autocomplete-list,.toast,.add-item-row,.col-action,.header-meta,.card-title,.section-header input::placeholder{display:none!important}.section-card{box-shadow:none;border:none;margin-bottom:0;page-break-inside:avoid}.section-header{background:var(--primary)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:8px 12px}.section-header input{background:transparent!important;border:none!important;color:#fff!important;font-size:14px!important;padding:0!important}.section-total{background:#f8fafc!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.items-table thead th{background:#f1f5f9!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.items-table input,.items-table select{border:none!important;background:transparent!important;padding:2px 4px!important;font-size:11px!important}.items-table tbody td{padding:3px 6px!important;font-size:11px!important}.col-sft,.col-amount{font-size:11px!important}.preview-header h2{font-size:20px!important}.preview-section{page-break-inside:avoid}.preview-section h3{background:var(--primary)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.preview-table th{background:#f1f5f9!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.preview-table th,.preview-table td{padding:4px 6px!important;font-size:10px!important}.preview-meta{font-size:11px!important}.preview-total-row.grand{font-size:16px!important}.preview-notes,.preview-terms{font-size:10px!important}.preview-notes ol,.preview-terms ol{font-size:10px!important}.total-card,.totals-grid,.form-row,.empty-state{display:none!important}.modal-overlay.show{display:none!important}@page{size:A4;margin:8mm}html,body{width:210mm;min-height:297mm}}</style>
+
+<body>
+<div class="container">
+
+<!-- Header -->
+<div class="header">
+  <div class="logo-box" id="logoBox">TN</div>
+  <div class="header-info">
+    <h1 contenteditable="true" id="companyName">TOUCH AND TONE</h1>
+    <p contenteditable="true" id="companyTagline">Interior Design Studio</p>
+  </div>
+  <div class="header-meta">
+    <div class="form-group" style="min-width:140px">
+      <label>Company Address</label>
+      <input type="text" id="companyAddress" placeholder="Address">
+    </div>
+    <div class="form-group" style="min-width:120px">
+      <label>Phone</label>
+      <input type="text" id="companyPhone" placeholder="Phone">
+    </div>
+    <div class="form-group" style="min-width:120px">
+      <label>Email</label>
+      <input type="text" id="companyEmail" placeholder="Email">
+    </div>
+    <label class="btn btn-outline btn-sm" style="margin-top:16px">
+      <i class="fas fa-image"></i> Logo
+      <input type="file" accept="image/*" id="logoInput" style="display:none">
+    </label>
+  </div>
+</div>
+
+<!-- Client Details -->
+<div class="card">
+  <div class="card-title"><i class="fas fa-user"></i> Client & Project Details</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Client Name *</label>
+      <input type="text" id="clientName" placeholder="Mr. Harsha">
+    </div>
+    <div class="form-group">
+      <label>Project Name *</label>
+      <input type="text" id="projectName" placeholder="Residence">
+    </div>
+    <div class="form-group">
+      <label>Project Location</label>
+      <input type="text" id="projectLocation" placeholder="Nizamabad">
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Date</label>
+      <input type="date" id="quotationDate">
+    </div>
+    <div class="form-group">
+      <label>Quotation No</label>
+      <input type="text" id="quotationNo" placeholder="QT-2026-001">
+    </div>
+    <div class="form-group">
+      <label>Client Phone</label>
+      <input type="text" id="clientPhone" placeholder="Phone number">
+    </div>
+    <div class="form-group">
+      <label>Client Email</label>
+      <input type="text" id="clientEmail" placeholder="Email address">
+    </div>
+  </div>
+</div>
+
+<!-- Summary Bar -->
+<div class="summary-bar">
+  <div class="grand-display"><span>Grand Total: </span><span id="grandTotalDisplay">₹0.00</span></div>
+  <div class="summary-actions">
+    <button class="btn btn-outline" onclick="addSection()"><i class="fas fa-plus"></i> Add Section</button>
+    <button class="btn btn-primary" onclick="previewQuotation()"><i class="fas fa-eye"></i> Preview</button>
+    <button class="btn btn-accent" onclick="printQuotation()"><i class="fas fa-print"></i> Print / PDF</button>
+    <!-- <button class="btn btn-success" onclick="shareWhatsApp()" style="background:#25d366;border-color:#25d366;color:#fff"><i class="fab fa-whatsapp"></i> WhatsApp</button> -->
+    <button class="btn btn-success" onclick="generateAndShareWhatsApp()" style="background:#25d366;border-color:#25d366;color:#fff">
+    <i class="fab fa-whatsapp"></i> WhatsApp
+</button>
+
+  </div>
+</div>
+
+<!-- Sections Container -->
+<div id="sectionsContainer">
+  <div class="empty-state" id="emptyState">
+    <i class="fas fa-clipboard-list" style="font-size:32px;margin-bottom:8px;display:block;opacity:0.4"></i>
+    No sections yet. Click "Add Section" to get started.
+  </div>
+</div>
+
+<!-- Totals -->
+<div class="card" style="margin-top:20px">
+  <div class="card-title"><i class="fas fa-calculator"></i> Summary & Totals</div>
+  <div class="totals-grid">
+    <div class="total-card">
+      <h3>Category Totals</h3>
+      <div class="total-row"><span class="label">Wood Work Total</span><span class="value" id="woodWorkTotal">₹0.00</span></div>
+      <div class="total-row"><span class="label">False Ceiling</span><span class="value" id="falseCeilingTotal">₹0.00</span></div>
+      <div class="total-row"><span class="label">Other Work</span><span class="value" id="otherWorkTotal">₹0.00</span></div>
+      <div class="total-row"><span class="label">Subtotal</span><span class="value" id="subtotalDisplay">₹0.00</span></div>
+    </div>
+    <div class="total-card">
+      <h3>Discount</h3>
+      <div class="form-row" style="margin-bottom:8px">
+        <div class="form-group" style="margin-bottom:0">
+          <label>Type</label>
+          <select id="discountType" onchange="calculateGrandTotal()">
+            <option value="percentage">Percentage (%)</option>
+            <option value="fixed">Fixed Amount</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label>Value</label>
+          <input type="number" id="discountValue" value="0" min="0" step="0.01" oninput="calculateGrandTotal()">
+        </div>
+      </div>
+      <div class="total-row"><span class="label">Discount Amount</span><span class="value" id="discountDisplay">₹0.00</span></div>
+    </div>
+    <div class="total-card">
+      <h3>GST</h3>
+      <div class="form-row" style="margin-bottom:8px">
+        <div class="form-group" style="margin-bottom:0">
+          <label><input type="checkbox" id="gstEnabled" onchange="calculateGrandTotal()"> Enable GST</label>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label>Percentage (%)</label>
+          <input type="number" id="gstPercentage" value="18" min="0" step="0.01" oninput="calculateGrandTotal()">
+        </div>
+      </div>
+      <div class="total-row"><span class="label">GST Amount</span><span class="value" id="gstDisplay">₹0.00</span></div>
+      <div class="total-row grand"><span class="label">Grand Total</span><span class="value" id="grandTotalCard">₹0.00</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Notes & Terms -->
+<div class="card">
+  <div class="card-title"><i class="fas fa-sticky-note"></i> Notes & Terms</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="notesText" rows="4" placeholder="Enter notes...">1. The above costings are tentative in nature and may vary as per the designs and selection of materials.
+2. The designs can be changed as per the requirements of customer.
+3. Artifacts are additional.
+4. Special materials may have additional charges.</textarea>
+    </div>
+    <div class="form-group">
+      <label>Terms & Conditions</label>
+      <textarea id="termsText" rows="4" placeholder="Enter terms...">1. 50% advance before commencement of work.
+2. 45% before delivery of materials.
+3. 5% on completion of work.
+4. Payment to be made by cheque or bank transfer.
+5. All prices are inclusive of labour charges.
+6. Any additional work will be charged extra.</textarea>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- Preview Modal -->
+<div class="modal-overlay" id="previewModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Quotation Preview</h2>
+      <button class="modal-close" onclick="closePreview()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="previewContent" class="preview-content"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== ITEM MASTER =====
+const itemMaster = [
+  // Drawing
+  {name:"TV Base Unit",description:"Supply and installation. Box made with BWP ply with 0.8mm inner laminate finish as per design.",unit:"SFT",price:1650,calculationType:"SFT",keywords:["tv","base","unit","television"]},
+  {name:"TV Unit Back Paneling",description:"Supply and installation. BWP ply with laminate finish as per design.",unit:"SFT",price:1250,calculationType:"SFT",keywords:["tv","back","paneling","panel"]},
+  {name:"Hall Partitions",description:"Supply and installation. Partition in BWP ply with laminate finish as per design.",unit:"SFT",price:1450,calculationType:"SFT",keywords:["partition","hall","divider"]},
+  {name:"ShoeRack",description:"Supply and installation. Box made with BWP ply with laminate finish including shutters.",unit:"SFT",price:1450,calculationType:"SFT",keywords:["shoe","rack","shoe rack"]},
+  {name:"Hidden Door",description:"Supply and installation. Concealed door with BWP ply and laminate finish as per design.",unit:"SFT",price:800,calculationType:"SFT",keywords:["hidden","door","concealed"]},
+  {name:"Main Door Panelling",description:"Supply and installation. Main door panelling in BWP ply with laminate finish.",unit:"SFT",price:1250,calculationType:"SFT",keywords:["main","door","panelling"]},
+  // Master Bedroom
+  {name:"Hinged Wardrobe",description:"Supply and installation. Box made with BWP ply with 0.8mm inner laminate finish and shutters with blockboard with 1mm laminate finish as per design.",unit:"SFT",price:1650,calculationType:"SFT",keywords:["wardrobe","hinged","cupboard","almirah"]},
+  {name:"Sliding Wardrobe",description:"Supply and installation. Sliding wardrobe with BWP ply box and shutters with 1mm laminate finish as per design.",unit:"SFT",price:1750,calculationType:"SFT",keywords:["wardrobe","sliding","cupboard","almirah"]},
+  {name:"Profile Shutter Wardrobe",description:"Supply and installation. Wardrobe with profile shutters in BWP ply with laminate finish.",unit:"SFT",price:1850,calculationType:"SFT",keywords:["wardrobe","profile","shutter","cupboard"]},
+  {name:"Wardrobe with Loft",description:"Supply and installation. Wardrobe with loft storage in BWP ply with laminate finish.",unit:"SFT",price:1750,calculationType:"SFT",keywords:["wardrobe","loft","cupboard","storage"]},
+  {name:"Loft",description:"Supply and installation. Loft storage in BWP ply with laminate finish as per design.",unit:"SFT",price:1250,calculationType:"SFT",keywords:["loft","storage"]},
+  {name:"King Size Bed with Storage",description:"Supply and installation. King size bed with hydraulic storage in BWP ply with laminate finish.",unit:"SFT",price:1650,calculationType:"SFT",keywords:["bed","king","storage","hydraulic"]},
+  {name:"Bed Back Paneling",description:"Supply and installation. Bed back panel in BWP ply with laminate finish as per design.",unit:"SFT",price:1050,calculationType:"SFT",keywords:["bed","back","paneling","panel"]},
+  {name:"Bed Headboard Back Panelling",description:"Supply and installation. Headboard back panelling in BWP ply with laminate finish.",unit:"SFT",price:1050,calculationType:"SFT",keywords:["bed","headboard","back","panelling"]},
+  // Children Bedroom
+  {name:"Single Bed with Storage",description:"Supply and installation. Single bed with storage in BWP ply with laminate finish.",unit:"SFT",price:1450,calculationType:"SFT",keywords:["bed","single","storage"]},
+  {name:"Study Table",description:"Supply and installation. Study table in BWP ply with laminate finish as per design.",unit:"SFT",price:1350,calculationType:"SFT",keywords:["study","table","desk"]},
+  // Utility
+  {name:"Wall Units",description:"Supply and installation. Wall mounted units in BWP ply with laminate finish.",unit:"SFT",price:1350,calculationType:"SFT",keywords:["wall","units","mounted","shelf"]},
+  {name:"Wash Area Console",description:"Supply and installation. Wash area console in BWP ply with laminate finish.",unit:"SFT",price:1450,calculationType:"SFT",keywords:["wash","area","console","basin"]},
+  // Kitchen
+  {name:"Kitchen Base Units",description:"Supply and installation. Base units in BWP ply with 1mm laminate finish and shutters as per design.",unit:"SFT",price:1350,calculationType:"SFT",keywords:["kitchen","base","units","cabinet"]},
+  {name:"Kitchen Wall Units",description:"Supply and installation. Wall units in BWP ply with 1mm laminate finish and shutters.",unit:"SFT",price:1450,calculationType:"SFT",keywords:["kitchen","wall","units","cabinet"]},
+  {name:"Kitchen Loft",description:"Supply and installation. Kitchen loft in BWP ply with laminate finish.",unit:"SFT",price:1050,calculationType:"SFT",keywords:["kitchen","loft","storage"]},
+  {name:"Profile Lights",description:"Supply and installation. Profile LED lights in kitchen cabinets as per design.",unit:"SFT",price:1200,calculationType:"SFT",keywords:["profile","lights","led","lighting"]},
+  {name:"Sink & Tap",description:"Supply and installation. Sink with tap and fittings as per selection.",unit:"ACTUALS",price:15000,calculationType:"ACTUALS",keywords:["sink","tap","faucet"]},
+  {name:"Extra Switch Boards & Sockets",description:"Supply and installation. Additional electrical points as per requirement.",unit:"ACTUALS",price:8000,calculationType:"ACTUALS",keywords:["switch","sockets","electrical","points"]},
+  {name:"Copper Piping & AC Wiring",description:"Supply and installation. Copper piping and AC wiring as per requirement.",unit:"ACTUALS",price:25000,calculationType:"ACTUALS",keywords:["copper","piping","ac","wiring"]},
+  {name:"Civil Work",description:"Civil work including masonry, plastering and painting as required.",unit:"ACTUALS",price:12000,calculationType:"ACTUALS",keywords:["civil","masonry","plaster"]},
+  {name:"Curtains & Blinds",description:"Supply and installation. Curtains and blinds as per selection.",unit:"ACTUALS",price:20000,calculationType:"ACTUALS",keywords:["curtain","blinds","drapes"]},
+  {name:"Plumbing Services & Material",description:"Supply and installation. Plumbing work with all materials as required.",unit:"ACTUALS",price:30000,calculationType:"ACTUALS",keywords:["plumbing","services","pipes"]},
+  {name:"Wallpapers",description:"Supply and installation. Wallpapers as per selection and design.",unit:"ACTUALS",price:15000,calculationType:"ACTUALS",keywords:["wallpaper","wall paper"]},
+  // Accessories
+  {name:"Innotech Drawer",description:"Supply and installation. Innotech drawer system with soft close hinges.",unit:"NOS",price:4500,calculationType:"NOS",keywords:["innotech","drawer","system"]},
+  {name:"PVC Cutlery",description:"Supply and installation. PVC cutlery tray for drawers.",unit:"NOS",price:1600,calculationType:"NOS",keywords:["pvc","cutlery","tray"]},
+  {name:"Innotech Tandem",description:"Supply and installation. Innotech tandem basket system with soft close.",unit:"NOS",price:5800,calculationType:"NOS",keywords:["innotech","tandem","basket"]},
+  {name:"Floor Protection Sheets",description:"Floor protection sheets to protect flooring during work.",unit:"NOS",price:10000,calculationType:"NOS",keywords:["floor","protection","sheets"]},
+  {name:"Deep Cleaning",description:"Deep cleaning of the entire premises after completion.",unit:"NOS",price:15000,calculationType:"NOS",keywords:["deep","cleaning","housekeeping"]},
+  // False Ceiling
+  {name:"False Ceiling - Gypsum",description:"Supply and installation. Gypsum board false ceiling with emulsion paint as per design.",unit:"SFT",price:95,calculationType:"SFT",keywords:["false","ceiling","gypsum","pop"]},
+  {name:"False Ceiling - Grid",description:"Supply and installation. Grid false ceiling with mineral fiber tiles.",unit:"SFT",price:85,calculationType:"SFT",keywords:["false","ceiling","grid","tile"]},
+  // Electrical
+  {name:"Electrical Wiring",description:"Supply and installation. Complete electrical wiring with modular switches.",unit:"SFT",price:120,calculationType:"SFT",keywords:["electrical","wiring","switches"]},
+  {name:"LED Light Points",description:"Supply and installation. LED light points with fixtures as per design.",unit:"NOS",price:850,calculationType:"NOS",keywords:["led","light","points","fixtures"]},
+  // Civil Work
+  {name:"Putty & Primer",description:"Wall putty and primer application on all walls.",unit:"SFT",price:18,calculationType:"SFT",keywords:["putty","primer","wall"]},
+  {name:"Emulsion Painting",description:"Premium emulsion painting on all walls as per colour selection.",unit:"SFT",price:22,calculationType:"SFT",keywords:["emulsion","painting","paint"]},
+  {name:"Tile Flooring",description:"Supply and installation. Vitrified tile flooring with laying as per design.",unit:"SFT",price:95,calculationType:"SFT",keywords:["tile","flooring","tiles"]},
+];
+
+// ===== STATE =====
+let sections = [];
+let sectionIdCounter = 0;
+
+// ===== UTILITY FUNCTIONS =====
+function formatIndianCurrency(amount) {
+  if (!amount || isNaN(amount)) amount = 0;
+  amount = parseFloat(amount);
+  const isNeg = amount < 0;
+  amount = Math.abs(amount);
+  const parts = amount.toFixed(2).split('.');
+  let intPart = parts[0];
+  const decPart = parts[1];
+  if (intPart.length > 3) {
+    const last3 = intPart.slice(-3);
+    const rest = intPart.slice(0, -3);
+    intPart = rest.replace(/\B(?=(\d{2})+(?!\d))/g, ',') + ',' + last3;
+  }
+  return (isNeg ? '-' : '') + '₹' + intPart + '.' + decPart;
+}
+
+function escapeHtml(text) {
+  if (!text) return '';
+  const d = document.createElement('div');
+  d.textContent = text;
+  return d.innerHTML;
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(() => { t.classList.remove('show'); }, 3000);
+}
+
+// ===== INITIALIZATION =====
+document.addEventListener('DOMContentLoaded', function() {
+  // Set default date
+  const today = new Date();
+  document.getElementById('quotationDate').value = today.toISOString().split('T')[0];
+  // Generate quotation number
+  const yr = today.getFullYear();
+  const mn = String(today.getMonth() + 1).padStart(2, '0');
+  document.getElementById('quotationNo').value = 'QT-' + yr + '-' + mn + '-' + String(Math.floor(Math.random() * 900) + 100);
+  // Logo upload
+  document.getElementById('logoInput').addEventListener('change', handleLogoUpload);
+  // Close autocomplete on outside click
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.autocomplete-wrap')) {
+      document.querySelectorAll('.autocomplete-list').forEach(el => el.classList.remove('show'));
+    }
+  });
+});
+
+function handleLogoUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const box = document.getElementById('logoBox');
+    box.innerHTML = '<img src="' + ev.target.result + '" alt="Logo">';
+  };
+  reader.readAsDataURL(file);
+}
+
+// ===== SECTION MANAGEMENT =====
+function addSection(name) {
+  const id = ++sectionIdCounter;
+  const section = { id: id, name: name || '', items: [] };
+  sections.push(section);
+  renderSection(section);
+  updateEmptyState();
+  if (!name) {
+    setTimeout(() => {
+      const inp = document.querySelector('[data-section-id="' + id + '"] .section-name-input');
+      if (inp) inp.focus();
+    }, 50);
+  }
+}
+
+function removeSection(id) {
+  if (!confirm('Delete this section and all its items?')) return;
+  sections = sections.filter(s => s.id !== id);
+  const el = document.querySelector('[data-section-id="' + id + '"]');
+  if (el) el.remove();
+  updateEmptyState();
+  calculateGrandTotal();
+}
+
+function moveSection(id, direction) {
+  const idx = sections.findIndex(s => s.id === id);
+  if (idx < 0) return;
+  const newIdx = direction === 'up' ? idx - 1 : idx + 1;
+  if (newIdx < 0 || newIdx >= sections.length) return;
+  const temp = sections[idx];
+  sections[idx] = sections[newIdx];
+  sections[newIdx] = temp;
+  // Re-render all sections
+  const container = document.getElementById('sectionsContainer');
+  container.innerHTML = '';
+  sections.forEach(s => renderSection(s));
+}
+
+function updateSectionName(id, name) {
+  const s = sections.find(s => s.id === id);
+  if (s) s.name = name;
+}
+
+function updateEmptyState() {
+  const es = document.getElementById('emptyState');
+  if (es) es.style.display = sections.length === 0 ? 'block' : 'none';
+}
+
+function renderSection(section) {
+  const container = document.getElementById('sectionsContainer');
+  const div = document.createElement('div');
+  div.className = 'section-card';
+  div.setAttribute('data-section-id', section.id);
+  div.innerHTML = 
+    '<div class="section-header">' +
+      '<input type="text" class="section-name-input" placeholder="Section name (e.g. DRAWING, KITCHEN)" value="' + escapeHtml(section.name) + '" oninput="updateSectionName(' + section.id + ', this.value)">' +
+      '<div class="section-actions">' +
+        '<button onclick="addItem(' + section.id + ')" title="Add Item"><i class="fas fa-plus"></i></button>' +
+        '<button onclick="moveSection(' + section.id + ',\'up\')" title="Move Up"><i class="fas fa-arrow-up"></i></button>' +
+        '<button onclick="moveSection(' + section.id + ',\'down\')" title="Move Down"><i class="fas fa-arrow-down"></i></button>' +
+        '<button class="danger" onclick="removeSection(' + section.id + ')" title="Delete Section"><i class="fas fa-trash"></i></button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="section-body">' +
+      '<div class="table-wrap">' +
+        '<table class="items-table">' +
+          '<thead><tr>' +
+            '<th class="col-sno">#</th>' +
+            '<th class="col-particular">Particulars</th>' +
+            '<th class="col-desc">Description</th>' +
+            '<th class="col-dim">Length</th>' +
+            '<th class="col-dim">Width</th>' +
+            '<th class="col-sft">SFT</th>' +
+            '<th class="col-qty">Qty</th>' +
+            '<th class="col-unit">Unit</th>' +
+            '<th class="col-price">Price</th>' +
+            '<th class="col-amount">Amount</th>' +
+            '<th class="col-action"></th>' +
+          '</tr></thead>' +
+          '<tbody data-items-body="' + section.id + '"></tbody>' +
+        '</table>' +
+      '</div>' +
+      '<div class="add-item-row">' +
+        '<button class="btn btn-outline btn-sm" onclick="addItem(' + section.id + ')"><i class="fas fa-plus"></i> Add Item</button>' +
+      '</div>' +
+      '<div class="section-total" data-section-total="' + section.id + '">Section Total: ' + formatIndianCurrency(0) + '</div>' +
+    '</div>';
+  container.appendChild(div);
+}
+
+
+// ===== ITEM MANAGEMENT =====
+function addItem(sectionId) {
+  const section = sections.find(s => s.id === sectionId);
+  if (!section) return;
+  const item = {
+    id: Date.now() + Math.random(),
+    particular: '',
+    description: '',
+    length: '',
+    width: '',
+    sft: '',
+    qty: '1',
+    unit: 'SFT',
+    price: '',
+    amount: '',
+    calculationType: 'SFT'
+  };
+  section.items.push(item);
+  renderItem(sectionId, item);
+  calculateSectionTotal(sectionId);
+}
+
+function removeItem(sectionId, itemId) {
+  const section = sections.find(s => s.id === sectionId);
+  if (!section) return;
+  section.items = section.items.filter(i => i.id !== itemId);
+  const tbody = document.querySelector('[data-items-body="' + sectionId + '"]');
+  if (tbody) {
+    const row = tbody.querySelector('[data-item-id="' + itemId + '"]');
+    if (row) row.remove();
+    // Re-number
+    const rows = tbody.querySelectorAll('tr');
+    rows.forEach((r, idx) => {
+      const sno = r.querySelector('.sno-cell');
+      if (sno) sno.textContent = idx + 1;
+    });
+  }
+  calculateSectionTotal(sectionId);
+}
+
+function renderItem(sectionId, item) {
+  const tbody = document.querySelector('[data-items-body="' + sectionId + '"]');
+  if (!tbody) return;
+  const section = sections.find(s => s.id === sectionId);
+  const sno = section ? section.items.length : 1;
+  const tr = document.createElement('tr');
+  tr.setAttribute('data-item-id', item.id);
+  tr.innerHTML =
+    '<td class="col-sno"><span class="sno-cell">' + sno + '</span></td>' +
+    '<td class="col-particular"><div class="autocomplete-wrap"><input type="text" class="particular-input" placeholder="Type to search..." value="' + escapeHtml(item.particular) + '" oninput="handleParticularInput(this,' + sectionId + ',' + item.id + ')" onfocus="handleParticularInput(this,' + sectionId + ',' + item.id + ')" onkeydown="handleAutocompleteKey(event,this)"><div class="autocomplete-list"></div></div></td>' +
+    '<td class="col-desc"><input type="text" class="desc-input" placeholder="Description" value="' + escapeHtml(item.description) + '" oninput="updateItemField(' + sectionId + ',' + item.id + ',\'description\',this.value)"></td>' +
+    '<td class="col-dim"><input type="number" class="length-input" placeholder="L" step="0.01" min="0" value="' + escapeHtml(item.length) + '" oninput="updateItemField(' + sectionId + ',' + item.id + ',\'length\',this.value);calcItemRow(' + sectionId + ',' + item.id + ')"></td>' +
+    '<td class="col-dim"><input type="number" class="width-input" placeholder="W" step="0.01" min="0" value="' + escapeHtml(item.width) + '" oninput="updateItemField(' + sectionId + ',' + item.id + ',\'width\',this.value);calcItemRow(' + sectionId + ',' + item.id + ')"></td>' +
+    '<td class="col-sft"><span class="sft-cell" data-sft-cell="' + item.id + '">-</span></td>' +
+    '<td class="col-qty"><input type="number" class="qty-input" placeholder="Qty" step="1" min="0" value="' + escapeHtml(item.qty) + '" oninput="updateItemField(' + sectionId + ',' + item.id + ',\'qty\',this.value);calcItemRow(' + sectionId + ',' + item.id + ')"></td>' +
+    '<td class="col-unit"><input type="text" class="unit-input" value="' + escapeHtml(item.unit) + '" oninput="updateItemField(' + sectionId + ',' + item.id + ',\'unit\',this.value)" placeholder="Unit"></td>' +
+    '<td class="col-price"><input type="number" class="price-input" placeholder="Price" step="0.01" min="0" value="' + escapeHtml(item.price) + '" oninput="updateItemField(' + sectionId + ',' + item.id + ',\'price\',this.value);calcItemRow(' + sectionId + ',' + item.id + ')"></td>' +
+    '<td class="col-amount"><span class="amount-cell" data-amount-cell="' + item.id + '">-</span></td>' +
+    '<td class="col-action"><button class="btn btn-danger btn-xs" onclick="removeItem(' + sectionId + ',' + item.id + ')"><i class="fas fa-times"></i></button></td>';
+  tbody.appendChild(tr);
+}
+
+function updateItemField(sectionId, itemId, field, value) {
+  const section = sections.find(s => s.id === sectionId);
+  if (!section) return;
+  const item = section.items.find(i => i.id === itemId);
+  if (item) item[field] = value;
+}
+
+// ===== AUTOCOMPLETE =====
+let activeAutocomplete = null;
+
+function handleParticularInput(input, sectionId, itemId) {
+  const query = input.value.toLowerCase().trim();
+  const wrap = input.closest('.autocomplete-wrap');
+  const list = wrap.querySelector('.autocomplete-list');
+  
+  if (query.length < 1) {
+    list.classList.remove('show');
+    activeAutocomplete = null;
+    return;
+  }
+  
+  // Filter items
+  const matches = itemMaster.filter(item => {
+    const nameMatch = item.name.toLowerCase().includes(query);
+    const keywordMatch = item.keywords.some(k => k.toLowerCase().includes(query));
+    return nameMatch || keywordMatch;
+  }).slice(0, 8);
+  
+  let html = '';
+  matches.forEach((item, idx) => {
+    html += '<div class="autocomplete-item' + (idx === 0 ? ' active' : '') + '" data-idx="' + idx + '" onclick="selectItem(this,' + sectionId + ',' + itemId + ',\'' + escapeHtml(item.name) + '\')">' +
+      '<div class="item-name">' + escapeHtml(item.name) + '</div>' +
+      '<div class="item-price">' + escapeHtml(item.unit) + ' @ ' + formatIndianCurrency(item.price) + '</div>' +
+      '</div>';
+  });
+  
+  // Add custom option
+  html += '<div class="autocomplete-item custom' + (matches.length === 0 ? ' active' : '') + '" onclick="selectCustomItem(this,' + sectionId + ',' + itemId + ',\'' + escapeHtml(input.value) + '\')">' +
+    '<div class="item-name"><i class="fas fa-plus-circle"></i> Custom: ' + escapeHtml(input.value) + '</div>' +
+    '</div>';
+  
+  list.innerHTML = html;
+  list.classList.add('show');
+  activeAutocomplete = { list: list, sectionId: sectionId, itemId: itemId, selectedIdx: 0 };
+}
+
+function handleAutocompleteKey(e, input) {
+  if (!activeAutocomplete) return;
+  const items = activeAutocomplete.list.querySelectorAll('.autocomplete-item');
+  if (items.length === 0) return;
+  
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    items[activeAutocomplete.selectedIdx].classList.remove('active');
+    activeAutocomplete.selectedIdx = (activeAutocomplete.selectedIdx + 1) % items.length;
+    items[activeAutocomplete.selectedIdx].classList.add('active');
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    items[activeAutocomplete.selectedIdx].classList.remove('active');
+    activeAutocomplete.selectedIdx = (activeAutocomplete.selectedIdx - 1 + items.length) % items.length;
+    items[activeAutocomplete.selectedIdx].classList.add('active');
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    items[activeAutocomplete.selectedIdx].click();
+  } else if (e.key === 'Escape') {
+    activeAutocomplete.list.classList.remove('show');
+    activeAutocomplete = null;
+  }
+}
+
+function selectItem(el, sectionId, itemId, name) {
+  const section = sections.find(s => s.id === sectionId);
+  if (!section) return;
+  const item = section.items.find(i => i.id === itemId);
+  if (!item) return;
+  
+  const masterItem = itemMaster.find(m => m.name === name);
+  if (!masterItem) return;
+  
+  // Update item data
+  item.particular = masterItem.name;
+  item.description = masterItem.description;
+  item.unit = masterItem.unit;
+  item.price = masterItem.price;
+  item.calculationType = masterItem.calculationType;
+  
+  // Update DOM
+  const row = el.closest('tr');
+  const particularInput = row.querySelector('.particular-input');
+  if (particularInput) particularInput.value = masterItem.name;
+  const descInput = row.querySelector('.desc-input');
+  if (descInput) descInput.value = masterItem.description;
+  const unitInput = row.querySelector('.unit-input');
+  if (unitInput) unitInput.value = masterItem.unit;
+  const priceInput = row.querySelector('.price-input');
+  if (priceInput) priceInput.value = masterItem.price;
+  
+  // Close autocomplete
+  const list = el.closest('.autocomplete-list');
+  if (list) list.classList.remove('show');
+  activeAutocomplete = null;
+  
+  // Calculate
+  calcItemRow(sectionId, itemId);
+  showToast('Item details auto-filled', 'success');
+}
+
+function selectCustomItem(el, sectionId, itemId, name) {
+  const section = sections.find(s => s.id === sectionId);
+  if (!section) return;
+  const item = section.items.find(i => i.id === itemId);
+  if (!item) return;
+  
+  item.particular = name;
+  item.description = '';
+  item.unit = 'SFT';
+  item.price = '';
+  item.calculationType = 'SFT';
+  
+  const row = el.closest('tr');
+  const particularInput = row.querySelector('.particular-input');
+  if (particularInput) particularInput.value = name;
+  const descInput = row.querySelector('.desc-input');
+  if (descInput) { descInput.value = ''; descInput.focus(); }
+  const unitInput = row.querySelector('.unit-input');
+  if (unitInput) unitInput.value = 'SFT';
+  const priceInput = row.querySelector('.price-input');
+  if (priceInput) priceInput.value = '';
+  
+  const list = el.closest('.autocomplete-list');
+  if (list) list.classList.remove('show');
+  activeAutocomplete = null;
+}
+
+
+// ===== CALCULATIONS =====
+function calcItemRow(sectionId, itemId) {
+  const section = sections.find(s => s.id === sectionId);
+  if (!section) return;
+  const item = section.items.find(i => i.id === itemId);
+  if (!item) return;
+  
+  const length = parseFloat(item.length) || 0;
+  const width = parseFloat(item.width) || 0;
+  const qty = parseFloat(item.qty) || 0;
+  const price = parseFloat(item.price) || 0;
+  const calcType = item.calculationType || 'SFT';
+  
+  let sft = 0;
+  let amount = 0;
+  
+  switch(calcType) {
+    case 'SFT':
+      sft = length * width;
+      amount = sft * qty * price;
+      break;
+    case 'RFT':
+      amount = length * qty * price;
+      sft = length;
+      break;
+    case 'NOS':
+      amount = qty * price;
+      sft = 0;
+      break;
+    case 'SET':
+      amount = qty * price;
+      sft = 0;
+      break;
+    case 'LUMP SUM':
+      amount = price;
+      sft = 0;
+      break;
+    case 'ACTUALS':
+      amount = price;
+      sft = 0;
+      break;
+    default:
+      sft = length * width;
+      amount = sft * qty * price;
+  }
+  
+  item.sft = sft;
+  item.amount = amount;
+  
+  // Update DOM
+  const sftCell = document.querySelector('[data-sft-cell="' + itemId + '"]');
+  if (sftCell) {
+    if (calcType === 'SFT' || calcType === 'RFT') {
+      sftCell.textContent = sft > 0 ? sft.toFixed(2) : '-';
+    } else {
+      sftCell.textContent = '-';
+    }
+  }
+  
+  const amountCell = document.querySelector('[data-amount-cell="' + itemId + '"]');
+  if (amountCell) {
+    amountCell.textContent = amount > 0 ? formatIndianCurrency(amount) : '-';
+  }
+  
+  calculateSectionTotal(sectionId);
+}
+
+function calculateSectionTotal(sectionId) {
+  const section = sections.find(s => s.id === sectionId);
+  if (!section) return 0;
+  
+  let total = 0;
+  section.items.forEach(item => {
+    total += parseFloat(item.amount) || 0;
+  });
+  
+  const totalEl = document.querySelector('[data-section-total="' + sectionId + '"]');
+  if (totalEl) {
+    totalEl.textContent = 'Section Total: ' + formatIndianCurrency(total);
+  }
+  
+  calculateGrandTotal();
+  return total;
+}
+
+function calculateGrandTotal() {
+  let woodWorkTotal = 0;
+  let falseCeilingTotal = 0;
+  let otherWorkTotal = 0;
+  
+  sections.forEach(section => {
+    const sectionTotal = section.items.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+    const sectionName = (section.name || '').toLowerCase().trim();
+    
+    // Categorize
+    if (sectionName.includes('false') || sectionName.includes('ceiling')) {
+      falseCeilingTotal += sectionTotal;
+    } else if (sectionName.includes('accessor') || sectionName.includes('civil') || sectionName.includes('electrical') || sectionName.includes('plumbing') || sectionName.includes('wood') || sectionName.includes('kitchen')) {
+      otherWorkTotal += sectionTotal;
+    } else {
+      woodWorkTotal += sectionTotal;
+    }
+  });
+  
+  const subtotal = woodWorkTotal + falseCeilingTotal + otherWorkTotal;
+  
+  // Discount
+  const discountType = document.getElementById('discountType').value;
+  const discountValue = parseFloat(document.getElementById('discountValue').value) || 0;
+  let discountAmount = 0;
+  if (discountType === 'percentage') {
+    discountAmount = subtotal * (discountValue / 100);
+  } else {
+    discountAmount = discountValue;
+  }
+  
+  const afterDiscount = subtotal - discountAmount;
+  
+  // GST
+  const gstEnabled = document.getElementById('gstEnabled').checked;
+  const gstPercentage = parseFloat(document.getElementById('gstPercentage').value) || 0;
+  const gstAmount = gstEnabled ? afterDiscount * (gstPercentage / 100) : 0;
+  
+  const grandTotal = afterDiscount + gstAmount;
+  
+  // Update displays
+  document.getElementById('woodWorkTotal').textContent = formatIndianCurrency(woodWorkTotal);
+  document.getElementById('falseCeilingTotal').textContent = formatIndianCurrency(falseCeilingTotal);
+  document.getElementById('otherWorkTotal').textContent = formatIndianCurrency(otherWorkTotal);
+  document.getElementById('subtotalDisplay').textContent = formatIndianCurrency(subtotal);
+  document.getElementById('discountDisplay').textContent = formatIndianCurrency(discountAmount);
+  document.getElementById('gstDisplay').textContent = formatIndianCurrency(gstAmount);
+  document.getElementById('grandTotalCard').textContent = formatIndianCurrency(grandTotal);
+  document.getElementById('grandTotalDisplay').textContent = formatIndianCurrency(grandTotal);
+  
+  return grandTotal;
+}
+
+// Auto-calculate on discount/GST changes
+document.addEventListener('DOMContentLoaded', function() {
+  const discVal = document.getElementById('discountValue');
+  const gstPct = document.getElementById('gstPercentage');
+  if (discVal) discVal.addEventListener('input', calculateGrandTotal);
+  if (gstPct) gstPct.addEventListener('input', calculateGrandTotal);
+});
+
+
+// ===== PREVIEW =====
+function previewQuotation() {
+  // Validate
+  const clientName = document.getElementById('clientName').value.trim();
+  const projectName = document.getElementById('projectName').value.trim();
+  
+  if (!clientName) {
+    showToast('Please enter client name', 'error');
+    document.getElementById('clientName').focus();
+    return;
+  }
+  if (!projectName) {
+    showToast('Please enter project name', 'error');
+    document.getElementById('projectName').focus();
+    return;
+  }
+  
+  const companyName = document.getElementById('companyName').textContent.trim() || 'TOUCH AND TONE';
+  const companyAddress = document.getElementById('companyAddress').value.trim();
+  const companyPhone = document.getElementById('companyPhone').value.trim();
+  const companyEmail = document.getElementById('companyEmail').value.trim();
+  const projectLocation = document.getElementById('projectLocation').value.trim();
+  const date = document.getElementById('quotationDate').value;
+  const quotationNo = document.getElementById('quotationNo').value.trim();
+  const clientPhone = document.getElementById('clientPhone').value.trim();
+  const clientEmail = document.getElementById('clientEmail').value.trim();
+  
+  const formattedDate = date ? new Date(date).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}) : '';
+  
+  let html = '';
+  
+  // Header
+  html += '<div class="preview-header">';
+  html += '<h2>' + escapeHtml(companyName) + '</h2>';
+  html += '<p>Interior Design Quotation</p>';
+  html += '</div>';
+  
+  // Meta
+  html += '<div class="preview-meta">';
+  html += '<div><strong>Client:</strong> ' + escapeHtml(clientName) + '</div>';
+  html += '<div><strong>Project:</strong> ' + escapeHtml(projectName) + '</div>';
+  if (projectLocation) html += '<div><strong>Location:</strong> ' + escapeHtml(projectLocation) + '</div>';
+  if (formattedDate) html += '<div><strong>Date:</strong> ' + formattedDate + '</div>';
+  if (quotationNo) html += '<div><strong>Quotation No:</strong> ' + escapeHtml(quotationNo) + '</div>';
+  if (clientPhone) html += '<div><strong>Phone:</strong> ' + escapeHtml(clientPhone) + '</div>';
+  if (clientEmail) html += '<div><strong>Email:</strong> ' + escapeHtml(clientEmail) + '</div>';
+  html += '</div>';
+  
+  // Sections
+  sections.forEach(section => {
+    if (section.items.length === 0) return;
+    html += '<div class="preview-section">';
+    html += '<h3>' + escapeHtml(section.name || 'SECTION') + '</h3>';
+    html += '<table class="preview-table"><thead><tr>';
+    html += '<th>S.No</th><th>Particulars</th><th>Description</th><th>Size</th><th>SFT</th><th>Qty</th><th>Unit</th><th>Price</th><th class="amt">Amount</th>';
+    html += '</tr></thead><tbody>';
+    
+    section.items.forEach((item, idx) => {
+      const length = parseFloat(item.length) || 0;
+      const width = parseFloat(item.width) || 0;
+      const sizeStr = (length > 0 && width > 0) ? length + ' × ' : '';
+      const sizeEnd = (length > 0 && width > 0) ? width : '';
+      const sftVal = parseFloat(item.sft) || 0;
+      
+      html += '<tr>';
+      html += '<td>' + (idx + 1) + '</td>';
+      html += '<td>' + escapeHtml(item.particular || '-') + '</td>';
+      html += '<td>' + escapeHtml(item.description || '-') + '</td>';
+      html += '<td>' + (length > 0 && width > 0 ? sizeStr + sizeEnd : '-') + '</td>';
+      html += '<td>' + (sftVal > 0 ? sftVal.toFixed(2) : '-') + '</td>';
+      html += '<td>' + (item.qty || 1) + '</td>';
+      html += '<td>' + escapeHtml(item.unit || '-') + '</td>';
+      html += '<td>' + (parseFloat(item.price) > 0 ? formatIndianCurrency(parseFloat(item.price)) : '-') + '</td>';
+      html += '<td class="amt">' + (parseFloat(item.amount) > 0 ? formatIndianCurrency(parseFloat(item.amount)) : '-') + '</td>';
+      html += '</tr>';
+    });
+    
+    html += '</tbody></table>';
+    
+    const sectionTotal = section.items.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+    html += '<div style="text-align:right;padding:6px 12px;background:#f8fafc;font-weight:600;font-size:14px">';
+    html += (section.name || 'SECTION') + ' TOTAL: ' + formatIndianCurrency(sectionTotal);
+    html += '</div></div>';
+  });
+  
+  // Grand Total Summary
+  const subtotal = parseFloat(document.getElementById('subtotalDisplay').textContent.replace(/[₹,]/g, '')) || 0;
+  const discount = parseFloat(document.getElementById('discountDisplay').textContent.replace(/[₹,]/g, '')) || 0;
+  const gst = parseFloat(document.getElementById('gstDisplay').textContent.replace(/[₹,]/g, '')) || 0;
+  const grand = parseFloat(document.getElementById('grandTotalCard').textContent.replace(/[₹,]/g, '')) || 0;
+  const woodWork = parseFloat(document.getElementById('woodWorkTotal').textContent.replace(/[₹,]/g, '')) || 0;
+  const falseCeiling = parseFloat(document.getElementById('falseCeilingTotal').textContent.replace(/[₹,]/g, '')) || 0;
+  
+  html += '<div class="preview-section" style="margin-top:20px"><h3>SUMMARY</h3>';
+  html += '<div style="max-width:350px;margin-left:auto">';
+  if (woodWork > 0) html += '<div class="preview-total-row"><span>Wood Work Total</span><span>' + formatIndianCurrency(woodWork) + '</span></div>';
+  if (falseCeiling > 0) html += '<div class="preview-total-row"><span>False Ceiling</span><span>' + formatIndianCurrency(falseCeiling) + '</span></div>';
+  html += '<div class="preview-total-row"><span>Subtotal</span><span>' + formatIndianCurrency(subtotal) + '</span></div>';
+  if (discount > 0) html += '<div class="preview-total-row"><span>Discount</span><span>- ' + formatIndianCurrency(discount) + '</span></div>';
+  if (gst > 0) html += '<div class="preview-total-row"><span>GST</span><span>' + formatIndianCurrency(gst) + '</span></div>';
+  html += '<div class="preview-total-row grand"><span>Grand Total</span><span>' + formatIndianCurrency(grand) + '</span></div>';
+  html += '</div></div>';
+  
+  // Notes
+  const notes = document.getElementById('notesText').value.trim();
+  if (notes) {
+    html += '<div class="preview-notes"><h4>Notes</h4><ol>';
+    notes.split('\n').forEach(line => {
+      line = line.trim();
+      if (line) {
+        // Remove leading number and period
+        line = line.replace(/^\d+\.\s*/, '');
+        if (line) html += '<li>' + escapeHtml(line) + '</li>';
+      }
+    });
+    html += '</ol></div>';
+  }
+  
+  // Terms
+  const terms = document.getElementById('termsText').value.trim();
+  if (terms) {
+    html += '<div class="preview-terms"><h4>Terms & Conditions</h4><ol>';
+    terms.split('\n').forEach(line => {
+      line = line.trim();
+      if (line) {
+        line = line.replace(/^\d+\.\s*/, '');
+        if (line) html += '<li>' + escapeHtml(line) + '</li>';
+      }
+    });
+    html += '</ol></div>';
+  }
+  
+  // Footer
+  html += '<div style="margin-top:24px;padding-top:16px;border-top:1px solid #e2e8f0;text-align:center;font-size:11px;color:#718096">';
+  if (companyAddress) html += '<div>' + escapeHtml(companyAddress) + '</div>';
+  if (companyPhone || companyEmail) html += '<div>' + escapeHtml(companyPhone) + (companyPhone && companyEmail ? ' | ' : '') + escapeHtml(companyEmail) + '</div>';
+  html += '</div>';
+  
+  document.getElementById('previewContent').innerHTML = html;
+  document.getElementById('previewModal').classList.add('show');
+}
+
+function closePreview() {
+  document.getElementById('previewModal').classList.remove('show');
+}
+
+// Close modal on overlay click
+document.addEventListener('DOMContentLoaded', function() {
+  const modal = document.getElementById('previewModal');
+  if (modal) {
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) closePreview();
+    });
+  }
+});
+
+// ===== PRINT =====
+function printQuotation() {
+  if (sections.length === 0) {
+    showToast('Add at least one section with items', 'error');
+    return;
+  }
+  window.print();
+}
+
+// ===== WHATSAPP =====
+function shareWhatsApp() {
+  const clientName = document.getElementById('clientName').value.trim() || 'Client';
+  const projectName = document.getElementById('projectName').value.trim() || '';
+  const projectLocation = document.getElementById('projectLocation').value.trim() || '';
+  const grandTotal = document.getElementById('grandTotalDisplay').textContent;
+  const companyName = document.getElementById('companyName').textContent.trim() || 'TOUCH AND TONE';
+  
+  let msg = 'Hello ' + clientName + ',%0A%0A';
+  msg += 'Please find the interior design quotation';
+  if (projectName) msg += ' for your project: ' + projectName;
+  if (projectLocation) msg += ' at ' + projectLocation;
+  msg += '.%0A%0A';
+  msg += 'Quotation Total: ' + grandTotal + '%0A%0A';
+  msg += 'Thank you,%0A' + companyName;
+  
+  // Try Web Share API on mobile
+  if (navigator.share && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+    navigator.share({
+      title: 'Interior Design Quotation',
+      text: msg.replace(/%0A/g, '\n').replace(/%2C/g, ',')
+    }).catch(function() {
+      window.open('https://wa.me/?text=' + msg, '_blank');
+    });
+  } else {
+    window.open('https://wa.me/?text=' + msg, '_blank');
+  }
+}
+
+async function generateAndShareWhatsApp() {
+
+  const clientName =
+    document.getElementById('clientName').value.trim() || 'Client';
+
+  const projectName =
+    document.getElementById('projectName').value.trim() || 'Project';
+
+  const projectLocation =
+    document.getElementById('projectLocation').value.trim() || '';
+
+  const companyName =
+    document.getElementById('companyName').textContent.trim() ||
+    'TOUCH AND TONE';
+
+  const grandTotal =
+    document.getElementById('grandTotalDisplay').textContent;
+
+  // Basic validation
+  if (!clientName || clientName === 'Client') {
+    showToast('Please enter client name', 'error');
+    document.getElementById('clientName').focus();
+    return;
+  }
+
+  if (sections.length === 0) {
+    showToast('Please add at least one section', 'error');
+    return;
+  }
+
+  try {
+
+    // Generate the preview first
+    previewQuotation();
+
+    // Wait for preview to render
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const previewContent =
+      document.getElementById('previewContent');
+
+    if (!previewContent) {
+      showToast('Unable to generate quotation', 'error');
+      return;
+    }
+
+    showToast('Generating PDF...', 'success');
+
+    // Create PDF
+    const pdfBlob = await html2pdf()
+      .set({
+        margin: [8, 8, 8, 8],
+
+        filename:
+          'Quotation-' +
+          clientName.replace(/[^a-z0-9]/gi, '-') +
+          '.pdf',
+
+        image: {
+          type: 'jpeg',
+          quality: 0.95
+        },
+
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff'
+        },
+
+        jsPDF: {
+          unit: 'mm',
+          format: 'a4',
+          orientation: 'portrait'
+        },
+
+        pagebreak: {
+          mode: ['css', 'legacy']
+        }
+
+      })
+      .from(previewContent)
+      .outputPdf('blob');
+
+    const fileName =
+      'Quotation-' +
+      clientName.replace(/[^a-z0-9]/gi, '-') +
+      '.pdf';
+
+    const pdfFile = new File(
+      [pdfBlob],
+      fileName,
+      {
+        type: 'application/pdf'
+      }
+    );
+
+    const message =
+      'Hello ' + clientName + ',\n\n' +
+      'Please find the interior design quotation' +
+      (projectName ? ' for your project: ' + projectName : '') +
+      (projectLocation ? ' at ' + projectLocation : '') +
+      '.\n\n' +
+      'Quotation Total: ' + grandTotal + '\n\n' +
+      'Thank you,\n' +
+      companyName;
+
+    // iPhone / Android native share
+    if (
+      navigator.share &&
+      navigator.canShare &&
+      navigator.canShare({ files: [pdfFile] })
+    ) {
+
+      await navigator.share({
+        title: 'Interior Design Quotation',
+        text: message,
+        files: [pdfFile]
+      });
+
+      showToast('Quotation ready to share', 'success');
+
+    } else {
+
+      // Fallback: download PDF
+      const url = URL.createObjectURL(pdfBlob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      URL.revokeObjectURL(url);
+
+      showToast(
+        'PDF downloaded. Open it and use Share → WhatsApp.',
+        'success'
+      );
+    }
+
+  } catch (error) {
+
+    console.error(error);
+
+    if (error.name === 'AbortError') {
+      return;
+    }
+
+    showToast(
+      'Could not create or share PDF.',
+      'error'
+    );
+  }
+}
+
+// ===== KEYBOARD SHORTCUTS =====
+document.addEventListener('keydown', function(e) {
+  // Ctrl+P for print
+  if (e.ctrlKey && e.key === 'p') {
+    e.preventDefault();
+    printQuotation();
+  }
+  // Escape to close modal
+  if (e.key === 'Escape') {
+    closePreview();
+  }
+});
+
+</script>
+</body>
+</html>
+
