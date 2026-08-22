@@ -6,7 +6,8 @@
 <title>Touch and Tone - Interior Design Quotation Generator</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
 :root{--primary:#1a365d;--primary-light:#2c5282;--accent:#c9a962;--accent-light:#d4b87a;--bg:#f5f6f8;--white:#ffffff;--border:#e2e8f0;--text:#2d3748;--text-light:#718096;--danger:#e53e3e;--success:#38a169;--shadow:0 2px 8px rgba(0,0,0,0.08);--shadow-lg:0 8px 24px rgba(0,0,0,0.12)}
@@ -123,7 +124,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 @media(max-width:768px){.container{padding:10px}.header{padding:14px}.form-row{flex-direction:column;gap:8px}.form-group{min-width:100%}.header-meta{flex-direction:column;align-items:stretch}.summary-bar{flex-direction:column;align-items:stretch}.grand-display{text-align:center}.items-table{min-width:900px}}
 @media print{body{background:#fff;margin:0;padding:0}.container{max-width:100%;padding:0;margin:0}.header,.card,.summary-bar,.btn,.section-actions,.modal-overlay,.autocomplete-list,.toast,.add-item-row,.col-action,.header-meta,.card-title,.section-header input::placeholder{display:none!important}.section-card{box-shadow:none;border:none;margin-bottom:0;page-break-inside:avoid}.section-header{background:var(--primary)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:8px 12px}.section-header input{background:transparent!important;border:none!important;color:#fff!important;font-size:14px!important;padding:0!important}.section-total{background:#f8fafc!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.items-table thead th{background:#f1f5f9!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.items-table input,.items-table select{border:none!important;background:transparent!important;padding:2px 4px!important;font-size:11px!important}.items-table tbody td{padding:3px 6px!important;font-size:11px!important}.col-sft,.col-amount{font-size:11px!important}.preview-header h2{font-size:20px!important}.preview-section{page-break-inside:avoid}.preview-section h3{background:var(--primary)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.preview-table th{background:#f1f5f9!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.preview-table th,.preview-table td{padding:4px 6px!important;font-size:10px!important}.preview-meta{font-size:11px!important}.preview-total-row.grand{font-size:16px!important}.preview-notes,.preview-terms{font-size:10px!important}.preview-notes ol,.preview-terms ol{font-size:10px!important}.total-card,.totals-grid,.form-row,.empty-state{display:none!important}.modal-overlay.show{display:none!important}@page{size:A4;margin:8mm}html,body{width:210mm;min-height:297mm}}
 
-/* PDF Rendering Styles - Clean for mobile */
+/* PDF Render Styles */
 .pdf-render-container {
   position: fixed;
   left: -9999px;
@@ -258,9 +259,43 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .pdf-render-container .preview-terms li {
   margin-bottom: 3px;
 }
+
+/* Loading overlay */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255,255,255,0.9);
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 20px;
+}
+.loading-overlay.show{display:flex}
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #e2e8f0;
+  border-top: 4px solid #1a365d;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+.loading-text{font-size:16px;color:var(--text);font-weight:500}
 </style>
 
 <body>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text" id="loadingText">Generating PDF...</div>
+</div>
+
 <div class="container">
 
 <!-- Header -->
@@ -469,7 +504,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
-<!-- PDF Render Container (hidden, used for generating PDF) -->
+<!-- PDF Render Container -->
 <div id="pdfRenderContainer" class="pdf-render-container"></div>
 
 <script>
@@ -521,6 +556,7 @@ const itemMaster = [
 // ===== STATE =====
 let sections = [];
 let sectionIdCounter = 0;
+let pendingPdfData = null;
 
 // ===== UTILITY FUNCTIONS =====
 function formatIndianCurrency(amount) {
@@ -551,6 +587,15 @@ function showToast(msg, type) {
   t.textContent = msg;
   t.className = 'toast ' + type + ' show';
   setTimeout(() => { t.classList.remove('show'); }, 3000);
+}
+
+function showLoading(text) {
+  document.getElementById('loadingText').textContent = text || 'Generating PDF...';
+  document.getElementById('loadingOverlay').classList.add('show');
+}
+
+function hideLoading() {
+  document.getElementById('loadingOverlay').classList.remove('show');
 }
 
 // ===== INITIALIZATION =====
@@ -997,7 +1042,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (gstPct) gstPct.addEventListener('input', calculateGrandTotal);
 });
 
-// ===== BUILD QUOTATION HTML (for preview and PDF) =====
+// ===== BUILD QUOTATION HTML =====
 function buildQuotationHTML() {
   const clientName = document.getElementById('clientName').value.trim() || 'Client';
   const projectName = document.getElementById('projectName').value.trim() || 'Project';
@@ -1015,13 +1060,11 @@ function buildQuotationHTML() {
   
   let html = '';
   
-  // Header
   html += '<div class="preview-header">';
   html += '<h2>' + escapeHtml(companyName) + '</h2>';
   html += '<p>Interior Design Quotation</p>';
   html += '</div>';
   
-  // Meta
   html += '<div class="preview-meta">';
   html += '<div><strong>Client:</strong> ' + escapeHtml(clientName) + '</div>';
   html += '<div><strong>Project:</strong> ' + escapeHtml(projectName) + '</div>';
@@ -1032,7 +1075,6 @@ function buildQuotationHTML() {
   if (clientEmail) html += '<div><strong>Email:</strong> ' + escapeHtml(clientEmail) + '</div>';
   html += '</div>';
   
-  // Sections
   sections.forEach(section => {
     if (section.items.length === 0) return;
     html += '<div class="preview-section">';
@@ -1044,15 +1086,13 @@ function buildQuotationHTML() {
     section.items.forEach((item, idx) => {
       const length = parseFloat(item.length) || 0;
       const width = parseFloat(item.width) || 0;
-      const sizeStr = (length > 0 && width > 0) ? length + ' × ' : '';
-      const sizeEnd = (length > 0 && width > 0) ? width : '';
       const sftVal = parseFloat(item.sft) || 0;
       
       html += '<tr>';
       html += '<td>' + (idx + 1) + '</td>';
       html += '<td>' + escapeHtml(item.particular || '-') + '</td>';
       html += '<td>' + escapeHtml(item.description || '-') + '</td>';
-      html += '<td>' + (length > 0 && width > 0 ? sizeStr + sizeEnd : '-') + '</td>';
+      html += '<td>' + (length > 0 && width > 0 ? length + ' × ' + width : '-') + '</td>';
       html += '<td>' + (sftVal > 0 ? sftVal.toFixed(2) : '-') + '</td>';
       html += '<td>' + (item.qty || 1) + '</td>';
       html += '<td>' + escapeHtml(item.unit || '-') + '</td>';
@@ -1069,7 +1109,6 @@ function buildQuotationHTML() {
     html += '</div></div>';
   });
   
-  // Grand Total Summary
   const subtotal = parseFloat(document.getElementById('subtotalDisplay').textContent.replace(/[₹,]/g, '')) || 0;
   const discount = parseFloat(document.getElementById('discountDisplay').textContent.replace(/[₹,]/g, '')) || 0;
   const gst = parseFloat(document.getElementById('gstDisplay').textContent.replace(/[₹,]/g, '')) || 0;
@@ -1087,7 +1126,6 @@ function buildQuotationHTML() {
   html += '<div class="preview-total-row grand"><span>Grand Total</span><span>' + formatIndianCurrency(grand) + '</span></div>';
   html += '</div></div>';
   
-  // Notes
   const notes = document.getElementById('notesText').value.trim();
   if (notes) {
     html += '<div class="preview-notes"><h4>Notes</h4><ol>';
@@ -1101,7 +1139,6 @@ function buildQuotationHTML() {
     html += '</ol></div>';
   }
   
-  // Terms
   const terms = document.getElementById('termsText').value.trim();
   if (terms) {
     html += '<div class="preview-terms"><h4>Terms & Conditions</h4><ol>';
@@ -1115,7 +1152,6 @@ function buildQuotationHTML() {
     html += '</ol></div>';
   }
   
-  // Footer
   html += '<div style="margin-top:24px;padding-top:16px;border-top:1px solid #e2e8f0;text-align:center;font-size:11px;color:#718096">';
   if (companyAddress) html += '<div>' + escapeHtml(companyAddress) + '</div>';
   if (companyPhone || companyEmail) html += '<div>' + escapeHtml(companyPhone) + (companyPhone && companyEmail ? ' | ' : '') + escapeHtml(companyEmail) + '</div>';
@@ -1166,6 +1202,88 @@ function printQuotation() {
   window.print();
 }
 
+// ===== PDF GENERATION USING html2canvas + jsPDF =====
+async function generatePDF() {
+  const clientName = document.getElementById('clientName').value.trim() || 'Client';
+  
+  // Build the HTML content
+  const htmlContent = buildQuotationHTML();
+  if (!htmlContent || htmlContent.trim().length < 50) {
+    throw new Error('Quotation content is empty');
+  }
+  
+  // Get the render container
+  const container = document.getElementById('pdfRenderContainer');
+  container.innerHTML = htmlContent;
+  
+  // Force reflow
+  container.offsetHeight;
+  
+  // Wait for fonts
+  try { await document.fonts.ready; } catch (_) {}
+  
+  // Wait a bit more for rendering
+  await new Promise(resolve => setTimeout(resolve, 200));
+  
+  // Use html2canvas to capture the content
+  const canvas = await html2canvas(container, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: '#ffffff',
+    logging: false,
+    width: 794,
+    height: container.scrollHeight,
+    windowWidth: 794,
+    onclone: function(clonedDoc) {
+      const clonedContainer = clonedDoc.getElementById('pdfRenderContainer');
+      if (clonedContainer) {
+        clonedContainer.style.position = 'static';
+        clonedContainer.style.left = 'auto';
+        clonedContainer.style.top = 'auto';
+        clonedContainer.style.opacity = '1';
+        clonedContainer.style.pointerEvents = 'auto';
+      }
+    }
+  });
+  
+  // Clear the container
+  container.innerHTML = '';
+  
+  if (!canvas || canvas.width === 0 || canvas.height === 0) {
+    throw new Error('Canvas rendering failed');
+  }
+  
+  // Create PDF using jsPDF
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF('p', 'mm', 'a4');
+  const pdfWidth = pdf.internal.pageSize.getWidth();
+  const pdfHeight = pdf.internal.pageSize.getHeight();
+  
+  const imgData = canvas.toDataURL('image/jpeg', 0.95);
+  const imgWidth = pdfWidth;
+  const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+  
+  let heightLeft = imgHeight;
+  let position = 0;
+  let page = 1;
+  
+  // Add first page
+  pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+  heightLeft -= pdfHeight;
+  
+  // Add additional pages if needed
+  while (heightLeft > 0) {
+    position = heightLeft - imgHeight;
+    pdf.addPage();
+    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pdfHeight;
+    page++;
+  }
+  
+  // Return as blob
+  return pdf.output('blob');
+}
+
 // ===== WHATSAPP SHARING =====
 async function generateAndShareWhatsApp() {
   const clientName = document.getElementById('clientName').value.trim() || 'Client';
@@ -1185,71 +1303,20 @@ async function generateAndShareWhatsApp() {
   }
 
   try {
-    showToast('Generating PDF...', 'success');
-
-    // Build the quotation HTML
-    const htmlContent = buildQuotationHTML();
-    if (!htmlContent || htmlContent.trim().length < 100) {
-      throw new Error('Quotation content is empty');
-    }
-
-    // Get the PDF render container and inject content
-    const renderContainer = document.getElementById('pdfRenderContainer');
-    renderContainer.innerHTML = htmlContent;
+    showLoading('Generating PDF...');
     
-    // Force reflow
-    renderContainer.offsetHeight;
+    // Generate PDF
+    const pdfBlob = await generatePDF();
     
-    // Wait for fonts
-    try { await document.fonts.ready; } catch (_) {}
-
-    const fileName = 'Quotation-' + clientName.replace(/[^a-z0-9]/gi, '-') + '.pdf';
-
-    // Generate PDF with mobile-optimized settings
-    const pdfBlob = await html2pdf()
-      .set({
-        margin: [8, 8, 8, 8],
-        filename: fileName,
-        image: { type: 'jpeg', quality: 0.92 },
-        html2canvas: {
-          scale: 1.5,
-          useCORS: true,
-          backgroundColor: '#ffffff',
-          logging: false,
-          width: 794,
-          height: renderContainer.scrollHeight || 1123,
-          windowWidth: 794,
-          onclone: function(doc) {
-            // Ensure all content is visible in the clone
-            const container = doc.getElementById('pdfRenderContainer');
-            if (container) {
-              container.style.position = 'static';
-              container.style.left = 'auto';
-              container.style.top = 'auto';
-              container.style.opacity = '1';
-              container.style.pointerEvents = 'auto';
-            }
-          }
-        },
-        jsPDF: {
-          unit: 'mm',
-          format: 'a4',
-          orientation: 'portrait'
-        },
-        pagebreak: { mode: ['css', 'legacy'] }
-      })
-      .from(renderContainer)
-      .outputPdf('blob');
-
-    // Clear the render container
-    renderContainer.innerHTML = '';
-
+    hideLoading();
+    
     if (!pdfBlob || pdfBlob.size < 100) {
       throw new Error('PDF generation failed - file too small');
     }
-
-    // Prepare share data
+    
+    const fileName = 'Quotation-' + clientName.replace(/[^a-z0-9]/gi, '-') + '.pdf';
     const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
+    
     const message = 
       'Hello ' + clientName + ',\n\n' +
       'Please find the interior design quotation' +
@@ -1259,21 +1326,22 @@ async function generateAndShareWhatsApp() {
       'Quotation Total: ' + grandTotal + '\n\n' +
       'Thank you,\n' +
       companyName;
-
-    window._pendingPdf = { blob: pdfBlob, file: pdfFile, message: message };
+    
+    pendingPdfData = { blob: pdfBlob, file: pdfFile, message: message };
     openSharePanel();
-
+    
+    showToast('PDF ready!', 'success');
+    
   } catch (error) {
+    hideLoading();
     console.error('PDF Generation Error:', error);
     showToast('Error: ' + (error.message || 'Failed to generate PDF'), 'error');
-    // Clear render container on error
     document.getElementById('pdfRenderContainer').innerHTML = '';
   }
 }
 
 function openSharePanel() {
-  const p = window._pendingPdf;
-  if (!p) {
+  if (!pendingPdfData) {
     showToast('No PDF ready. Generate one first.', 'error');
     return;
   }
@@ -1281,17 +1349,17 @@ function openSharePanel() {
   const canShareFiles = 
     !!navigator.share && 
     !!navigator.canShare && 
-    navigator.canShare({ files: [p.file] });
+    navigator.canShare({ files: [pendingPdfData.file] });
 
   const nativeBtn = document.getElementById('btnNativeShare');
   const hint = document.getElementById('shareHint');
   
   if (canShareFiles) {
     nativeBtn.style.display = '';
-    hint.textContent = 'Tap the WhatsApp button below to share the PDF directly. You can also download the PDF and share it manually.';
+    hint.textContent = 'Tap the WhatsApp button below to share the PDF directly.';
   } else {
     nativeBtn.style.display = 'none';
-    hint.textContent = 'Direct PDF sharing is not available in this browser. Download the PDF and attach it in WhatsApp.';
+    hint.textContent = 'Direct PDF sharing is not available. Download and share manually.';
   }
 
   document.getElementById('shareSuccess').style.display = 'none';
@@ -1304,14 +1372,13 @@ function closeSharePanel() {
 }
 
 async function shareNativePdf() {
-  const p = window._pendingPdf;
-  if (!p) return;
+  if (!pendingPdfData) return;
 
   try {
     await navigator.share({
       title: 'Interior Design Quotation',
-      text: p.message,
-      files: [p.file]
+      text: pendingPdfData.message,
+      files: [pendingPdfData.file]
     });
     
     document.getElementById('shareOptions').style.display = 'none';
@@ -1320,31 +1387,28 @@ async function shareNativePdf() {
   } catch (err) {
     if (err && err.name === 'AbortError') return;
     console.warn('Share failed:', err);
-    showToast('Share cancelled or failed. Try downloading the PDF.', 'error');
+    showToast('Share cancelled or failed.', 'error');
   }
 }
 
 function sendWaTextOnly() {
-  const p = window._pendingPdf;
-  if (!p) return;
+  if (!pendingPdfData) return;
   
   closeSharePanel();
-  const url = 'https://wa.me/?text=' + encodeURIComponent(p.message);
+  const url = 'https://wa.me/?text=' + encodeURIComponent(pendingPdfData.message);
   window.open(url, '_blank');
-  showToast('Opening WhatsApp...', 'success');
 }
 
 function downloadPendingPdf() {
-  const p = window._pendingPdf;
-  if (!p) {
-    showToast('No PDF available. Generate one first.', 'error');
+  if (!pendingPdfData) {
+    showToast('No PDF available.', 'error');
     return;
   }
 
-  const url = URL.createObjectURL(p.blob);
+  const url = URL.createObjectURL(pendingPdfData.blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = p.file.name;
+  a.download = pendingPdfData.file.name;
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -1354,15 +1418,14 @@ function downloadPendingPdf() {
 }
 
 function copyMessageText() {
-  const p = window._pendingPdf;
-  if (!p) return;
+  if (!pendingPdfData) return;
   
   if (navigator.clipboard) {
-    navigator.clipboard.writeText(p.message).then(() => {
+    navigator.clipboard.writeText(pendingPdfData.message).then(() => {
       showToast('Message copied to clipboard', 'success');
     }).catch(() => {
       const textarea = document.createElement('textarea');
-      textarea.value = p.message;
+      textarea.value = pendingPdfData.message;
       document.body.appendChild(textarea);
       textarea.select();
       document.execCommand('copy');
@@ -1371,7 +1434,7 @@ function copyMessageText() {
     });
   } else {
     const textarea = document.createElement('textarea');
-    textarea.value = p.message;
+    textarea.value = pendingPdfData.message;
     document.body.appendChild(textarea);
     textarea.select();
     document.execCommand('copy');
