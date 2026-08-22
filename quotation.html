@@ -1072,131 +1072,83 @@ function shareWhatsApp() {
 }
 
 async function generateAndShareWhatsApp() {
+  const clientName = document.getElementById('clientName').value.trim() || 'Client';
+  const projectName = document.getElementById('projectName').value.trim() || 'Project';
+  const projectLocation = document.getElementById('projectLocation').value.trim() || '';
+  const companyName = document.getElementById('companyName').textContent.trim() || 'TOUCH AND TONE';
+  const grandTotal = document.getElementById('grandTotalDisplay').textContent;
 
-  const clientName =
-    document.getElementById('clientName').value.trim() || 'Client';
-
-  const projectName =
-    document.getElementById('projectName').value.trim() || 'Project';
-
-  const projectLocation =
-    document.getElementById('projectLocation').value.trim() || '';
-
-  const companyName =
-    document.getElementById('companyName').textContent.trim() ||
-    'TOUCH AND TONE';
-
-  const grandTotal =
-    document.getElementById('grandTotalDisplay').textContent;
-
-  // Basic validation
   if (!clientName || clientName === 'Client') {
     showToast('Please enter client name', 'error');
     document.getElementById('clientName').focus();
     return;
   }
-
   if (sections.length === 0) {
     showToast('Please add at least one section', 'error');
     return;
   }
 
   try {
+    showToast('Generating PDF…', 'success');
 
-    showToast('Generating PDF...', 'success');
-
-    const fileName =
-      'Quotation-' +
-      clientName.replace(/[^a-z0-9]/gi, '-') +
-      '.pdf';
-
+    // 1. Build and show the preview
     previewQuotation();
+    // Wait a little longer for the modal content to render fully on mobile
+    await new Promise(resolve => setTimeout(resolve, 500));
 
-    await new Promise(resolve => setTimeout(resolve, 300));
-
-    const previewContent =
-      document.getElementById('previewContent');
-
+    // 2. Clone the preview content into an off‑screen container (not hidden with height:0)
+    const previewContent = document.getElementById('previewContent');
     if (!previewContent || !previewContent.innerHTML.trim()) {
       showToast('Unable to generate quotation', 'error');
       return;
     }
 
-    // IMPORTANT: the render element must sit in normal flow inside a
-    // zero-height clipping wrapper. Positioned elements (fixed/absolute/
-    // negative offsets) make html2canvas produce a 0-height blank canvas.
     const wrap = document.createElement('div');
-    wrap.style.cssText = 'position:absolute;left:0;top:0;width:794px;height:0;overflow:hidden';
+    wrap.style.cssText = 'position:absolute; left:-9999px; top:0; width:794px;';
     const holder = document.createElement('div');
-    holder.style.cssText = 'width:794px;background:#ffffff';
+    holder.style.cssText = 'width:100%; background:#ffffff; padding:0;';
     holder.appendChild(previewContent.cloneNode(true));
     wrap.appendChild(holder);
     document.body.appendChild(wrap);
 
-    // Make sure webfonts are loaded before rendering
-    try { await document.fonts.ready; } catch (e) { /* ignore */ }
+    // Wait for fonts and force a reflow
+    try { await document.fonts.ready; } catch (_) {}
+    // Force layout by reading offsetHeight
+    holder.offsetHeight;
 
-    const MAX_CANVAS_AREA = 12000000;
-    const MAX_CANVAS_DIM = 4096;
-    const w = Math.max(1, holder.offsetWidth);
-    const h = Math.max(1, holder.scrollHeight);
-    const areaScale = Math.sqrt(MAX_CANVAS_AREA / (w * h));
-    const dimScale = MAX_CANVAS_DIM / Math.max(w, h);
-    let safeScale = Math.min(2, areaScale, dimScale);
-    safeScale = Math.max(0.5, Math.floor(safeScale * 10) / 10);
+    // 3. Generate PDF with a fixed, conservative scale (1.0)
+    const fileName = 'Quotation-' + clientName.replace(/[^a-z0-9]/gi, '-') + '.pdf';
 
-    const makePdf = function(s) {
-      return html2pdf()
-        .set({
-          margin: [8, 8, 8, 8],
-          filename: fileName,
-          image: {
-            type: 'jpeg',
-            quality: 0.92
-          },
-          html2canvas: {
-            scale: s,
-            useCORS: true,
-            backgroundColor: '#ffffff',
-            logging: false
-          },
-          jsPDF: {
-            unit: 'mm',
-            format: 'a4',
-            orientation: 'portrait'
-          },
-          pagebreak: {
-            mode: ['css', 'legacy']
-          }
-        })
-        .from(holder)
-        .outputPdf('blob');
-    };
+    const pdfBlob = await html2pdf()
+      .set({
+        margin: [8, 8, 8, 8],
+        filename: fileName,
+        image: { type: 'jpeg', quality: 0.92 },
+        html2canvas: {
+          scale: 1.0,               // fixed low scale prevents memory issues
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          logging: false
+        },
+        jsPDF: {
+          unit: 'mm',
+          format: 'a4',
+          orientation: 'portrait'
+        },
+        pagebreak: { mode: ['css', 'legacy'] }
+      })
+      .from(holder)
+      .outputPdf('blob');
 
-    let pdfBlob;
-    try {
-      pdfBlob = await makePdf(safeScale);
-    } catch (genErr) {
-      console.warn('PDF retry at lower resolution', genErr);
-      pdfBlob = await makePdf(Math.min(1, safeScale));
-    } finally {
-      wrap.remove();
-    }
-
-    console.log('PDF generated:', fileName, (pdfBlob && pdfBlob.size || 0) + ' bytes', 'scale=' + safeScale);
+    // Clean up the off‑screen element
+    wrap.remove();
 
     if (!pdfBlob || pdfBlob.size === 0) {
       throw new Error('PDF came out empty. Please try again.');
     }
 
-    const pdfFile = new File(
-      [pdfBlob],
-      fileName,
-      {
-        type: 'application/pdf'
-      }
-    );
-
+    // 4. Prepare sharing
+    const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
     const message =
       'Hello ' + clientName + ',\n\n' +
       'Please find the interior design quotation' +
@@ -1204,31 +1156,18 @@ async function generateAndShareWhatsApp() {
       (projectLocation ? ' at ' + projectLocation : '') +
       '.\n\n' +
       'Quotation Total: ' + grandTotal + '\n\n' +
-      'Thank you,\n' +
-      companyName;
+      'Thank you,\n' + companyName;
 
-    // Keep the PDF ready; sharing must happen on a fresh tap so the
-    // browser allows navigator.share() (transient activation requirement)
     window._pendingPdf = { blob: pdfBlob, file: pdfFile, message: message };
     openSharePanel();
 
   } catch (error) {
-
     console.error(error);
-
-    if (error.name === 'AbortError') {
-      return;
+    if (error.name !== 'AbortError') {
+      showToast('Error: ' + (error.message || 'unknown error'), 'error');
     }
-
-    showToast(
-      'Could not create or share PDF: ' + (error && error.message ? error.message : 'unknown error'),
-      'error'
-    );
   }
 }
-
-// ===== SHARE PANEL =====
-
 function openSharePanel() {
   const p = window._pendingPdf;
   if (!p) return;
