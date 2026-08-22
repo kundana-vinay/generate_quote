@@ -1098,16 +1098,24 @@ async function generateAndShareWhatsApp() {
       return;
     }
 
+    // Off-screen absolute holder. Do NOT use position:fixed here -
+    // html2canvas can capture fixed elements as blank when page is scrolled.
     const holder = document.createElement('div');
-    holder.style.cssText = 'position:fixed;top:0;left:0;width:794px;background:#ffffff;z-index:500';
+    holder.style.cssText = 'position:absolute;left:-10000px;top:0;width:794px;background:#ffffff';
     holder.appendChild(previewContent.cloneNode(true));
     document.body.appendChild(holder);
 
+    // Make sure webfonts are loaded before rendering
+    try { await document.fonts.ready; } catch (e) { /* ignore */ }
+
     const MAX_CANVAS_AREA = 12000000;
+    const MAX_CANVAS_DIM = 4096;
     const w = Math.max(1, holder.offsetWidth);
     const h = Math.max(1, holder.scrollHeight);
-    let safeScale = Math.min(2, Math.sqrt(MAX_CANVAS_AREA / (w * h)));
-    safeScale = Math.max(1, Math.floor(safeScale * 10) / 10);
+    const areaScale = Math.sqrt(MAX_CANVAS_AREA / (w * h));
+    const dimScale = MAX_CANVAS_DIM / Math.max(w, h);
+    let safeScale = Math.min(2, areaScale, dimScale);
+    safeScale = Math.max(0.5, Math.floor(safeScale * 10) / 10);
 
     const makePdf = function(s) {
       return html2pdf()
@@ -1122,7 +1130,6 @@ async function generateAndShareWhatsApp() {
             scale: s,
             useCORS: true,
             backgroundColor: '#ffffff',
-            windowWidth: 1000,
             logging: false
           },
           jsPDF: {
@@ -1143,9 +1150,15 @@ async function generateAndShareWhatsApp() {
       pdfBlob = await makePdf(safeScale);
     } catch (genErr) {
       console.warn('PDF retry at lower resolution', genErr);
-      pdfBlob = await makePdf(1);
+      pdfBlob = await makePdf(Math.min(1, safeScale));
     } finally {
       holder.remove();
+    }
+
+    console.log('PDF generated:', fileName, (pdfBlob && pdfBlob.size || 0) + ' bytes', 'scale=' + safeScale);
+
+    if (!pdfBlob || pdfBlob.size === 0) {
+      throw new Error('PDF came out empty. Please try again.');
     }
 
     const pdfFile = new File(
@@ -1177,7 +1190,11 @@ async function generateAndShareWhatsApp() {
       a.click();
       a.remove();
 
-      URL.revokeObjectURL(url);
+      // Delay revoke: revoking immediately cancels the download on mobile
+      // browsers and produces an empty file
+      setTimeout(function() {
+        URL.revokeObjectURL(url);
+      }, 60000);
 
       showToast(
         'PDF downloaded. Open it and use Share → WhatsApp.',
